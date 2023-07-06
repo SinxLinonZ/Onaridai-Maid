@@ -1,0 +1,17 @@
+{
+  "name": "onaridai-bot",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "SinxLinonZ",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "dependencies": {
+    "better-sqlite3": "^8.4.0",
+    "discord.js": "^14.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.44.0"
+  }
+}
