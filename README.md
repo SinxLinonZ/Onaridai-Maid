@@ -10,7 +10,6 @@ The bot instance is running on a VPS host, managing by H-kys/SinxLinonZ/Ziyi.Lin
 
 ## Structure
 ```
-|- config.json
 |- src
    |- commands
    |  |- <command-category>
@@ -22,6 +21,7 @@ The bot instance is running on a VPS host, managing by H-kys/SinxLinonZ/Ziyi.Lin
    |- events
    |  |- <event>.js
    |
+   |- config.json
    |- index.js
    |- deploy-command.js
 ```
