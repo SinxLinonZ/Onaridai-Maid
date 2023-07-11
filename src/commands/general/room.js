@@ -30,6 +30,21 @@ module.exports = {
                         .setDescription('The id of the room to delete')
                         .setRequired(true),
                 ),
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('rename')
+                .setDescription('rename a room')
+                .addIntegerOption(option =>
+                    option.setName('roomid')
+                        .setDescription('The id of the room to rename')
+                        .setRequired(true),
+                )
+                .addStringOption(option =>
+                    option.setName('newname')
+                        .setDescription('The new name of the room')
+                        .setRequired(true),
+                ),
         ),
 
     async execute(interaction) {
@@ -246,6 +261,67 @@ module.exports = {
             }
 
             reply += `Room ${deleteRoomId} deleted\r\n`;
+            await interaction.editReply(reply);
+            roomDB.close();
+        }
+
+        else if (subCmd === 'rename') {
+            // Get command options
+            let renameRoomId;
+            let newRoomName;
+            try {
+                renameRoomId = interaction.options.getInteger('roomid', true);
+                newRoomName = interaction.options.getString('newname', true).toLowerCase().trim().replace(/ /g, '-');
+            }
+            catch (error) {
+                console.log(error);
+                reply += 'Invalid input\r\n';
+                await interaction.editReply(reply);
+                return;
+            }
+
+            // Connect to database
+            const appDir = path.dirname(require.main.filename);
+            const roomDB = new Database(appDir + '/db/rooms.db');
+
+            // Check if room exists
+            const roomData = roomDB.prepare(
+                'SELECT * FROM rooms \
+                WHERE id = ?').all(renameRoomId);
+
+            if (roomData.length === 0) {
+                reply += `Room ${renameRoomId} not found\r\n`;
+            }
+            else if (roomData[0].owner !== user.id) {
+                reply += `You are not the owner of room ${renameRoomId}\r\n`;
+            }
+
+            // Abort if is invalid operation
+            if (reply.length > 0) {
+                await interaction.editReply(reply);
+                return;
+            }
+
+            // Get target channel
+            const room = interaction.guild.channels.cache.find(
+                channel => channel.name === `【${renameRoomId}】${roomData[0].name}`,
+            );
+            if (!room) {
+                reply += `Room ${renameRoomId} not found\r\n`;
+                await interaction.editReply(reply);
+                return;
+            }
+
+            // Update database
+            roomDB.prepare(
+                'UPDATE rooms \
+                SET name = ? \
+                WHERE id = ?').run(newRoomName, renameRoomId);
+
+            // Rename channel
+            await room.setName(`【${renameRoomId}】${newRoomName}`);
+
+            reply += `Room ${renameRoomId} renamed to ${newRoomName}\r\n`;
             await interaction.editReply(reply);
             roomDB.close();
         }
